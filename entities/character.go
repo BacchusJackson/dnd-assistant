@@ -186,11 +186,15 @@ func (c Character) Levels() string {
 	}
 	out := "\n"
 	maxLength := 0
+
+	// Get the maximum length for all class names for padding
 	for _, key := range reflect.ValueOf(c.ClassLevels).MapKeys() {
 		if len(key.String()) > maxLength {
 			maxLength = len(key.String())
 		}
 	}
+
+	// Pad the class names with spaces
 	for class, level := range c.ClassLevels {
 		out += class + strings.Repeat(" ", maxLength-len(class)+1) + strconv.Itoa(int(level)) + "\n"
 	}
