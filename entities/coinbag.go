@@ -21,7 +21,7 @@ func (c *CoinBag) Unmarshal(jsonBytes []byte) error {
 	return err
 }
 
-func (c CoinBag) string() string {
+func (c CoinBag) String() string {
 	return fmt.Sprintf("Copper: %d | Silver: %d | Gold: %d | Platinum %d",
 		c.Copper, c.Silver, c.Gold, c.Platinum)
 }

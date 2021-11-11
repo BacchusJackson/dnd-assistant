@@ -72,10 +72,7 @@ func (c *Character) Unmarshal(jsonBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	if c.Id == "" {
-		return errors.New("bad character data")
-	}
-	return nil
+	return c.Valid()
 }
 
 func (c *Character) Map() map[string]string {
@@ -93,10 +90,22 @@ func (c *Character) Unmap(m map[string]string) error {
 
 	_ = c.Unmarshal(jsonBytes)
 
+	return c.Valid()
+}
+
+func (c Character) Valid() error {
+	var b strings.Builder
 	if c.Id == "" {
-		return errors.New("bad character data")
+		b.WriteString("no character ID")
+	}
+	if c.MaxHp == 0 {
+		b.WriteString("max hp at 0")
+	}
+	if b.String() != "" {
+		return errors.New(b.String())
 	}
 	return nil
+
 }
 
 func (c *Character) HistoryId() string {
