@@ -1,3 +1,6 @@
+# Go specific files
+*.mod text eol=lf
+
 # Set default behavior to automatically normalize line endings.
 * text=auto
 
@@ -9,4 +12,3 @@
 # Force bash scripts to always use LF line endings so that if a repo is accessed
 # in Unix via a file share from Windows, the scripts will work.
 *.sh text eol=lf
-*.mod text eol=lf
