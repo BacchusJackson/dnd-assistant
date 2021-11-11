@@ -3,8 +3,7 @@ package entities
 import "testing"
 
 func TestNote_Serialization(t *testing.T) {
-	note := Note{CharacterId: "bruce", Body: "Test Note"}
-	note.Touch()
+	note := NewNote("Some note")
 	t.Log(note)
 
 	jsonBytes, err := note.Marshal()
@@ -33,7 +32,6 @@ func TestNote_Serialization(t *testing.T) {
 
 func TestNote_Valid(t *testing.T) {
 	note := Note{}
-
 	_, err := note.Marshal()
 	t.Log(err)
 	if err == nil {

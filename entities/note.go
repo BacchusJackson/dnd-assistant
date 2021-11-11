@@ -3,6 +3,7 @@ package entities
 import (
 	"encoding/json"
 	"errors"
+	"github.com/google/uuid"
 	"strings"
 	"time"
 )
@@ -10,9 +11,16 @@ import (
 const TimeFormat = time.RFC822
 
 type Note struct {
-	CharacterId string `json:"character_id"`
-	Body        string `json:"body"`
-	Date        string `json:"date"`
+	Id   string `json:"id"`
+	Body string `json:"body"`
+	Date string `json:"date"`
+}
+
+func NewNote(body string) Note {
+	n := Note{Body: body}
+	n.Touch()
+	n.Id = uuid.NewString()
+	return n
 }
 
 // Marshal converts the note into JSON bytes
@@ -37,7 +45,10 @@ func (n *Note) Unmarshal(jsonBytes []byte) error {
 // Returns nil if valid
 func (n Note) Valid() error {
 	var b strings.Builder
-	if n.CharacterId == "" {
+	if n.Id == "" {
+		b.WriteString("no id for note\n")
+	}
+	if n.Id == "" {
 		b.WriteString("no character id for note\n")
 	}
 	_, err := time.Parse(TimeFormat, n.Date)
@@ -60,5 +71,5 @@ func (n *Note) Touch() {
 
 // String converts the note to a formatted string
 func (n Note) String() string {
-	return n.Date + "\n" + n.Body + "\n"
+	return n.Date + " - " + n.Id + "\n" + n.Body + "\n"
 }
