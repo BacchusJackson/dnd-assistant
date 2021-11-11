@@ -59,6 +59,7 @@ type Character struct {
 	Performance      bool            `json:"performance,string"`
 	Persuasion       bool            `json:"persuasion,string"`
 	ClassLevels      map[string]uint `json:"character_levels,omitempty"`
+	Coins            CoinBag         `json:"coins"`
 }
 
 func (c Character) Marshal() ([]byte, error) {
