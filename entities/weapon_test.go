@@ -3,11 +3,8 @@ package entities
 import "testing"
 
 func TestWeapon_Serialization(t *testing.T) {
-	weapon := Weapon{
-		Name:        "Sword",
-		Description: "1d6 damage",
-		Properties:  []WeaponProperty{Finesse, Light},
-	}
+	weapon := NewWeapon("Sword", "1d6 Damage", Finesse, Light)
+
 	jsonBytes, err := weapon.Marshal()
 
 	if err != nil {

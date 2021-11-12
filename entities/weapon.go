@@ -2,11 +2,13 @@ package entities
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"strings"
 )
 
 type Weapon struct {
 	Name        string           `json:"name"`
+	Id          string           `json:"id"`
 	Description string           `json:"description"`
 	Properties  []WeaponProperty `json:"properties,string,omitempty"`
 }
@@ -26,6 +28,15 @@ const (
 	Versatile WeaponProperty = "Versatile"
 )
 
+func NewWeapon(name string, description string, props ...WeaponProperty) *Weapon {
+	w := &Weapon{Name: name, Description: description}
+	w.Id = uuid.NewString()
+	for _, prop := range props {
+		w.Properties = append(w.Properties, prop)
+	}
+	return w
+}
+
 func (w Weapon) Marshal() ([]byte, error) {
 	return json.Marshal(w)
 }
@@ -43,6 +54,15 @@ func (w Weapon) PropertiesString() string {
 		return ""
 	}
 	return strings.Join(props, " | ")
+}
+
+func (w Weapon) Valid() error {
+	_, err := uuid.Parse(w.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (w Weapon) String() string {

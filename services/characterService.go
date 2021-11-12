@@ -20,7 +20,7 @@ type CharacterService struct {
 	repo CharacterRepo
 }
 
-// NewCharacterService returns a pointer to a character service used to interact with the repository
+// NewCharacterService returns a pointer to a character noteService used to interact with the repository
 func NewCharacterService(repo CharacterRepo) *CharacterService {
 	return &CharacterService{repo: repo}
 }

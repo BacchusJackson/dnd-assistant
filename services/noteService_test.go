@@ -31,26 +31,26 @@ func (f fakeRepo) DeleteNote(_ string) error {
 }
 
 var fakeNote = entities.NewNote("My test note")
-var service = NewNoteService(fakeRepo{})
+var noteService = NewNoteService(fakeRepo{})
 
 func TestNoteService_Create(t *testing.T) {
 	note := entities.NewNote("My second test note")
 	note.Id = ""
-	err := service.Create(&note)
+	err := noteService.Create(&note)
 	if err == nil {
 		t.Error("failed to catch no id")
 	}
-	_ = service.Create(&fakeNote)
+	_ = noteService.Create(&fakeNote)
 }
 
 func TestNoteService_GetAll(t *testing.T) {
-	_, _ = service.GetAll()
+	_, _ = noteService.GetAll()
 }
 
 func TestNoteService_Update(t *testing.T) {
-	_, _ = service.Update(&fakeNote)
+	_, _ = noteService.Update(&fakeNote)
 }
 
 func TestNoteService_Delete(t *testing.T) {
-	_ = service.Delete("flash")
+	_ = noteService.Delete("flash")
 }

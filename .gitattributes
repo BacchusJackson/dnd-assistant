@@ -1,5 +1,6 @@
 # Go specific files
 *.mod text eol=lf
+*.sum text eol=lf
 *.go text eol=lf
 
 # Set default behavior to automatically normalize line endings.
