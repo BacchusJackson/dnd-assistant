@@ -48,4 +48,6 @@ func TestWeaponService_Create(t *testing.T) {
 	}
 }
 
-func TestWeaponService
+func TestWeaponService_GetAll(t *testing.T) {
+
+}
