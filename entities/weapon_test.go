@@ -10,6 +10,9 @@ func TestWeapon_Serialization(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	if weapon.Valid() != nil {
+		t.Error("validation failed")
+	}
 	var weapon2 Weapon
 
 	err = weapon2.Unmarshal(jsonBytes)
@@ -33,4 +36,10 @@ func TestWeapon_Serialization(t *testing.T) {
 	}
 
 	weapon4.PropertiesString()
+
+	weapon5 := Weapon{}
+
+	if weapon5.Valid() == nil {
+		t.Error("expected failed validation but validation passed")
+	}
 }

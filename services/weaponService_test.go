@@ -49,5 +49,8 @@ func TestWeaponService_Create(t *testing.T) {
 }
 
 func TestWeaponService_GetAll(t *testing.T) {
-
+	_, err := weaponService.GetAll()
+	if err != nil {
+		t.Error(err)
+	}
 }
