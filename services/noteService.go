@@ -26,17 +26,17 @@ func (s NoteService) Create(n *entities.Note) error {
 	return s.repo.CreateNote(n)
 }
 
-// GetAll notes from repo
+// GetAll notes from repositories
 func (s NoteService) GetAll() ([]entities.Note, error) {
 	return s.repo.GetNotes()
 }
 
-// Update a specific note in repo
+// Update a specific note in repositories
 func (s NoteService) Update(n *entities.Note) (entities.Note, error) {
 	return s.repo.UpdateNote(n)
 }
 
-// Delete a specific note from repo
+// Delete a specific note from repositories
 func (s NoteService) Delete(id string) error {
 	return s.repo.DeleteNote(id)
 }

@@ -25,7 +25,7 @@ func NewCharacterService(repo CharacterRepo) *CharacterService {
 	return &CharacterService{repo: repo}
 }
 
-// Create add a character to the repo
+// Create add a character to the repositories
 func (s CharacterService) Create(c *entities.Character) error {
 	err := c.Valid()
 	if err != nil {
@@ -63,7 +63,7 @@ func (s CharacterService) Undo(id string) (*entities.Character, error) {
 
 }
 
-// GetIds returns a slice of character ids in the repo
+// GetIds returns a slice of character ids in the repositories
 func (s CharacterService) GetIds() ([]string, error) {
 	return s.repo.CharacterIds()
 }
