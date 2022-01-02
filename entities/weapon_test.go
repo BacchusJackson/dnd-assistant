@@ -2,44 +2,20 @@ package entities
 
 import "testing"
 
-func TestWeapon_Serialization(t *testing.T) {
-	weapon := NewWeapon("Sword", "1d6 Damage", Finesse, Light)
+func TestWeapon_String(t *testing.T) {
+	weapon := NewWeapon("Katana", "1d6 light weapon", Finesse, Light)
+	t.Log(weapon)
+	weapon = NewWeapon("katana", "")
+	t.Log(weapon)
+}
 
-	jsonBytes, err := weapon.Marshal()
+func TestWeapon_Valid(t *testing.T) {
+	weapon := NewWeapon("Katana", "1d6 light weapon", Finesse, Light)
+	weapon.Id = "bad.id"
+	err := weapon.Valid()
+	checkError(t, ErrInvalidWeapon, err)
 
-	if err != nil {
-		t.Error(err)
-	}
-	if weapon.Valid() != nil {
-		t.Error("validation failed")
-	}
-	var weapon2 Weapon
-
-	err = weapon2.Unmarshal(jsonBytes)
-	if err != nil {
-		t.Error(err)
-	}
-
-	t.Log(weapon2)
-
-	var weapon3 Weapon
-
-	err = weapon3.Unmarshal([]byte{})
-
-	if err == nil {
-		t.Error("failed to catch json error")
-	}
-
-	weapon4 := Weapon{
-		Name:        "Sword",
-		Description: "1d6 damage",
-	}
-
-	weapon4.PropertiesString()
-
-	weapon5 := Weapon{}
-
-	if weapon5.Valid() == nil {
-		t.Error("expected failed validation but validation passed")
-	}
+	weapon = NewWeapon("Katana", "1d6 light weapon", Finesse, Light)
+	err = weapon.Valid()
+	checkError(t, nil, err)
 }

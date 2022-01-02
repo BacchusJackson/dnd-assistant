@@ -1,8 +1,10 @@
 package entities
 
 import (
-	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/google/uuid"
+	"log"
 	"strings"
 )
 
@@ -12,6 +14,8 @@ type Weapon struct {
 	Description string           `json:"description"`
 	Properties  []WeaponProperty `json:"properties,string,omitempty"`
 }
+
+var ErrInvalidWeapon = errors.New("invalid weapon format")
 
 type WeaponProperty string
 
@@ -30,19 +34,11 @@ const (
 
 func NewWeapon(name string, description string, props ...WeaponProperty) *Weapon {
 	w := &Weapon{Name: name, Description: description}
-	w.Id = uuid.NewString()
+	w.Id = fmt.Sprintf("weapon.%s", uuid.NewString())
 	for _, prop := range props {
 		w.Properties = append(w.Properties, prop)
 	}
 	return w
-}
-
-func (w Weapon) Marshal() ([]byte, error) {
-	return json.Marshal(w)
-}
-
-func (w *Weapon) Unmarshal(jsonBytes []byte) error {
-	return json.Unmarshal(jsonBytes, &w)
 }
 
 func (w Weapon) PropertiesString() string {
@@ -51,24 +47,23 @@ func (w Weapon) PropertiesString() string {
 		props = append(props, string(prop))
 	}
 	if len(props) == 0 {
-		return ""
+		return "-"
 	}
-	return strings.Join(props, " | ")
+	return strings.Join(props, ", ")
 }
 
 func (w Weapon) Valid() error {
-	_, err := uuid.Parse(w.Id)
+	err := ValidId(w.Id)
+
 	if err != nil {
-		return err
+		log.Println("invalid ID")
+		return ErrInvalidWeapon
 	}
 
 	return nil
 }
 
 func (w Weapon) String() string {
-	var b strings.Builder
-	b.WriteString(w.Name + "\n")
-	b.WriteString(w.PropertiesString() + "\n")
-	b.WriteString(w.Description + "\n")
-	return b.String()
+
+	return strings.Join([]string{w.Name, w.PropertiesString(), w.Description}, " | ")
 }

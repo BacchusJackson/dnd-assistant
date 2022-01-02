@@ -1,10 +1,10 @@
 package entities
 
 import (
-	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
-	"strings"
+	"log"
 	"time"
 )
 
@@ -16,51 +16,40 @@ type Note struct {
 	Date string `json:"date"`
 }
 
-func NewNote(body string) Note {
-	n := Note{Body: body}
+func NewNote(body string) *Note {
+	n := &Note{Body: body}
 	n.Touch()
-	n.Id = uuid.NewString()
+	n.Id = fmt.Sprintf("note.%s", uuid.NewString())
 	return n
 }
 
-// Marshal converts the note into JSON bytes
-func (n Note) Marshal() ([]byte, error) {
-	err := n.Valid()
-	if err != nil {
-		return nil, err
+func ParseNote(m map[string]string) (*Note, error) {
+	n := &Note{
+		Id:   m["id"],
+		Body: m["body"],
+		Date: m["date"],
 	}
-	return json.Marshal(n)
+	return n, n.Valid()
 }
 
-// Unmarshal parses json data into a note
-func (n *Note) Unmarshal(jsonBytes []byte) error {
-	err := json.Unmarshal(jsonBytes, &n)
-	if err != nil {
-		return err
-	}
-	return n.Valid()
-}
+var ErrInvalidNote = errors.New("invalid note")
 
 // Valid checks if the note has the appropriate fields.
 // Returns nil if valid
 func (n Note) Valid() error {
-	var b strings.Builder
-	if n.Id == "" {
-		b.WriteString("no id for note\n")
-	}
-	if n.Id == "" {
-		b.WriteString("no character id for note\n")
-	}
-	_, err := time.Parse(TimeFormat, n.Date)
+	err := ValidId(n.Id)
+
 	if err != nil {
-		b.WriteString("bad time format\n")
+		log.Println("invalid ID")
+		return ErrInvalidNote
 	}
-	if n.Body == "" {
-		b.WriteString("no body\n")
+
+	_, err = time.Parse(TimeFormat, n.Date)
+	if err != nil {
+		log.Println("invalid time format")
+		return ErrInvalidNote
 	}
-	if b.Len() != 0 {
-		return errors.New(b.String())
-	}
+
 	return nil
 }
 
@@ -72,4 +61,17 @@ func (n *Note) Touch() {
 // String converts the note to a formatted string
 func (n Note) String() string {
 	return n.Date + " - " + n.Id + "\n" + n.Body + "\n"
+}
+
+// Map converts a note to a map
+func (n Note) Map() map[string]string {
+	return map[string]string{
+		"id":   n.GetId(),
+		"body": n.Body,
+		"date": n.Date,
+	}
+}
+
+func (n Note) GetId() string {
+	return n.Id
 }

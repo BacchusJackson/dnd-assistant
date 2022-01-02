@@ -2,39 +2,48 @@ package entities
 
 import "testing"
 
-func TestNote_Serialization(t *testing.T) {
-	note := NewNote("Some note")
-	t.Log(note)
+func TestNote_Valid(t *testing.T) {
+	// blank note
+	note := &Note{}
+	err := note.Valid()
+	checkError(t, ErrInvalidNote, err)
 
-	jsonBytes, err := note.Marshal()
+	note.Id = "invalid.id"
+	err = note.Valid()
+	checkError(t, ErrInvalidNote, err)
 
-	if err != nil {
-		t.Error(err)
-	}
+	// invalid time format
+	note = NewNote("content")
+	note.Date = "invalid"
+	err = note.Valid()
+	checkError(t, ErrInvalidNote, err)
 
-	var note2 Note
-
-	err = note2.Unmarshal(jsonBytes)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	var note3 Note
-
-	err = note3.Unmarshal([]byte{})
-
-	if err == nil {
-		t.Error("failed to catch json error")
-	}
-
+	// good note
+	note = NewNote("content")
+	err = note.Valid()
+	checkError(t, nil, err)
 }
 
-func TestNote_Valid(t *testing.T) {
-	note := Note{}
-	_, err := note.Marshal()
-	t.Log(err)
-	if err == nil {
-		t.Error("failed to catch errors")
-	}
+func TestNote_String(t *testing.T) {
+	note := NewNote("content")
+	t.Log(note)
+}
+
+func TestNote_Map(t *testing.T) {
+	note := NewNote("content")
+	noteMap := note.Map()
+	t.Log(noteMap)
+}
+
+func TestNote_GetId(t *testing.T) {
+	note := NewNote("content")
+	t.Log(note.GetId())
+}
+
+func TestParseNote(t *testing.T) {
+	note := NewNote("content")
+	noteMap := note.Map()
+	note2, err := ParseNote(noteMap)
+	checkError(t, nil, err)
+	checkError(t, note.Id, note2.Id)
 }
