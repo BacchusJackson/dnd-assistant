@@ -94,11 +94,11 @@ func (m MockClient) FlushDB(ctx context.Context) *redis.StatusCmd {
 }
 
 // Internal test functions
-func clean() {
+func cleanTestDatabase() {
 	client := NewDefaultRedisClient(RedisAddress, 2)
 	err := client.Clean()
 	if err != nil {
-		fmt.Printf("Failed to clean Redis Database: %s\n", err)
+		fmt.Printf("Failed to cleanTestDatabase Redis Database: %s\n", err)
 		os.Exit(-1)
 	}
 }
@@ -111,7 +111,7 @@ func checkError(t *testing.T, expected interface{}, got interface{}) {
 
 // Unit Tests
 func TestRedisRepo_Append(t *testing.T) {
-	clean()
+	cleanTestDatabase()
 	client := newMockedRepo()
 
 	err := client.Append("error", "")
@@ -125,50 +125,50 @@ func TestRedisRepo_Append(t *testing.T) {
 	checkError(t, nil, err)
 }
 
-func TestRedisRepo_Set(t *testing.T) {
-	clean()
+func TestRedisRepo_Update(t *testing.T) {
+	cleanTestDatabase()
 	client := newMockedRepo()
-	err := client.Set("error", "test-field", "test-value")
+	err := client.Update("error", "test-field", "test-value")
 	checkError(t, ErrDatabaseFail, err)
 
-	err = client.Set("fail", "test-field", "test-value")
+	err = client.Update("fail", "test-field", "test-value")
 	checkError(t, ErrDatabaseFail, err)
 
 	client = NewDefaultRedisClient(RedisAddress, 2)
 
-	err = client.Set("test-key", "test-field", "test-value")
+	err = client.Update("test-key", "test-field", "test-value")
 	checkError(t, nil, err)
 }
 
-func TestRedisRepo_SetMap(t *testing.T) {
-	clean()
+func TestRedisRepo_Write(t *testing.T) {
+	cleanTestDatabase()
 	client := newMockedRepo()
 
-	err := client.SetMap("error", nil)
+	err := client.Write("error", nil)
 	checkError(t, ErrDatabaseFail, err)
 
-	err = client.SetMap("fail", nil)
+	err = client.Write("fail", nil)
 	checkError(t, ErrDatabaseFail, err)
 
 	client = NewDefaultRedisClient(RedisAddress, 2)
-	err = client.SetMap("test-key", map[string]string{
+	err = client.Write("test-key", map[string]string{
 		"field-1": "value-1",
 		"field-2": "value-2",
 	})
 	checkError(t, nil, err)
 }
 
-func TestRedisRepo_Get(t *testing.T) {
-	clean()
+func TestRedisRepo_Read(t *testing.T) {
+	cleanTestDatabase()
 	client := newMockedRepo()
-	res, err := client.Get("error")
+	res, err := client.Read("error")
 	checkError(t, ErrDatabaseFail, err)
 
 	client = NewDefaultRedisClient(RedisAddress, 2)
-	err = client.Set("test-key", "test-field", "test-value")
+	err = client.Update("test-key", "test-field", "test-value")
 	checkError(t, nil, err)
 
-	res, err = client.Get("test-key")
+	res, err = client.Read("test-key")
 	checkError(t, nil, err)
 	checkError(t, "test-value", res["test-field"])
 

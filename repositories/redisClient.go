@@ -34,7 +34,7 @@ func (r RedisClient) Append(key string, value string) error {
 	return nil
 }
 
-func (r RedisClient) Set(key string, field string, value string) error {
+func (r RedisClient) Update(key string, field string, value string) error {
 	res, err := r.redis.HSet(context.Background(), key, field, value).Result()
 	if err != nil {
 		log.Printf("Redis repo HSET failed: %s\n", err)
@@ -49,28 +49,27 @@ func (r RedisClient) Set(key string, field string, value string) error {
 	return nil
 }
 
-func (r RedisClient) SetMap(key string, value map[string]string) error {
-	res, err := r.redis.HSet(context.Background(), key, value).Result()
+func (r RedisClient) Write(key string, values map[string]string) error {
+	res, err := r.redis.HSet(context.Background(), key, values).Result()
 	if err != nil {
-		log.Printf("Redis Client HSET failed: %s\n", err)
+		log.Printf("Redis HSET error: %s\n", err)
 		return ErrDatabaseFail
 	}
-	// res is equal to the number of fields written which should be equal to the length of the map
-	if res != int64(len(value)) {
-		log.Printf("Redis Client HSET Unexpected Response: %d\n", res)
+	if res != int64(len(values)) {
+		log.Printf("Redis HSET Response: %d\n", res)
 		return ErrDatabaseFail
 	}
 	return nil
 }
 
-func (r RedisClient) Get(key string) (map[string]string, error) {
+func (r RedisClient) Read(key string) (map[string]string, error) {
 	res, err := r.redis.HGetAll(context.Background(), key).Result()
 	if err != nil {
-		log.Printf("Redis Client HGETALL failed: %s\n", res)
+		log.Printf("Redis HGETALL error: %s\n", res)
 		return nil, ErrDatabaseFail
 	}
 
-	log.Printf("Redis Client HGETALL Response: %s\n", res)
+	log.Printf("Redis HGETALL Response: %s\n", res)
 	return res, nil
 }
 
@@ -90,7 +89,7 @@ func (r RedisClient) Ping() error {
 func (r RedisClient) Clean() error {
 	res, err := r.redis.FlushDB(context.Background()).Result()
 	if err != nil {
-		log.Println("failed to clean")
+		log.Println("failed to cleanTestDatabase")
 		return ErrDatabaseFail
 	}
 	if res != "OK" {
