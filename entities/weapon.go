@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -9,10 +10,10 @@ import (
 )
 
 type Weapon struct {
-	Name        string           `json:"name"`
-	Id          string           `json:"id"`
-	Description string           `json:"description"`
-	Properties  []WeaponProperty `json:"properties,string,omitempty"`
+	Name        string   `json:"name"`
+	Id          string   `json:"id"`
+	Description string   `json:"description"`
+	Properties  []string `json:"properties,string,omitempty"`
 }
 
 var ErrInvalidWeapon = errors.New("invalid weapon format")
@@ -36,20 +37,29 @@ func NewWeapon(name string, description string, props ...WeaponProperty) *Weapon
 	w := &Weapon{Name: name, Description: description}
 	w.Id = fmt.Sprintf("weapon.%s", uuid.NewString())
 	for _, prop := range props {
-		w.Properties = append(w.Properties, prop)
+		w.Properties = append(w.Properties, string(prop))
 	}
 	return w
 }
 
+func ParseWeapon(m map[string]string) (*Weapon, error) {
+	weapon := &Weapon{}
+
+	propJsonBytes := []byte(m["properties"])
+	m["properties"] = ""
+
+	jsonBytes, _ := json.Marshal(m)
+	err := json.Unmarshal(jsonBytes, weapon)
+	err = json.Unmarshal(propJsonBytes, &weapon.Properties)
+	return weapon, err
+}
+
 func (w Weapon) PropertiesString() string {
-	var props []string
-	for _, prop := range w.Properties {
-		props = append(props, string(prop))
-	}
-	if len(props) == 0 {
+
+	if len(w.Properties) == 0 {
 		return "-"
 	}
-	return strings.Join(props, ", ")
+	return strings.Join(w.Properties, ", ")
 }
 
 func (w Weapon) Valid() error {
@@ -61,6 +71,18 @@ func (w Weapon) Valid() error {
 	}
 
 	return nil
+}
+
+func (w Weapon) Map() map[string]string {
+	output := map[string]string{}
+
+	// Props have to be converted to json string
+	propBytes, _ := json.Marshal(w.Properties)
+	jsonBytes, _ := json.Marshal(w)
+	_ = json.Unmarshal(jsonBytes, &output)
+
+	output["properties"] = string(propBytes)
+	return output
 }
 
 func (w Weapon) String() string {
