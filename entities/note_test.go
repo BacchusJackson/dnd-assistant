@@ -37,7 +37,7 @@ func TestNote_Map(t *testing.T) {
 
 func TestNote_GetId(t *testing.T) {
 	note := NewNote("content")
-	t.Log(note.GetId())
+	t.Log(note.EntityId())
 }
 
 func TestParseNote(t *testing.T) {

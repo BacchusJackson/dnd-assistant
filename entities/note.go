@@ -19,7 +19,7 @@ type Note struct {
 func NewNote(body string) *Note {
 	n := &Note{Body: body}
 	n.Touch()
-	n.Id = fmt.Sprintf("note.%s", uuid.NewString())
+	n.Id = uuid.NewString()
 	return n
 }
 
@@ -37,7 +37,7 @@ var ErrInvalidNote = errors.New("invalid note")
 // Valid checks if the note has the appropriate fields.
 // Returns nil if valid
 func (n Note) Valid() error {
-	err := ValidId(n.Id)
+	err := ValidateEntityId(n.EntityId())
 
 	if err != nil {
 		log.Println("invalid ID")
@@ -60,18 +60,18 @@ func (n *Note) Touch() {
 
 // String converts the note to a formatted string
 func (n Note) String() string {
-	return n.Date + " - " + n.Id + "\n" + n.Body + "\n"
+	return n.Date + ": " + n.Body + "\n"
 }
 
 // Map converts a note to a map
 func (n Note) Map() map[string]string {
 	return map[string]string{
-		"id":   n.GetId(),
+		"id":   n.Id,
 		"body": n.Body,
 		"date": n.Date,
 	}
 }
 
-func (n Note) GetId() string {
-	return n.Id
+func (n Note) EntityId() string {
+	return fmt.Sprintf("note.%s", n.Id)
 }

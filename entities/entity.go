@@ -3,19 +3,26 @@ package entities
 import (
 	"errors"
 	"github.com/google/uuid"
+	"log"
 	"strings"
 )
 
-func ValidId(id string) error {
+type Entity interface {
+	Map() map[string]string
+	EntityId() string
+}
+
+var ErrInvalidEntityId = errors.New("invalid entity id")
+
+func ValidateEntityId(id string) error {
 	parts := strings.Split(id, ".")
 	if len(parts) != 2 {
-
-		return errors.New("invalid ID")
+		return ErrInvalidEntityId
 	}
 	_, err := uuid.Parse(parts[1])
-
 	if err != nil {
-		return errors.New("invalid ID")
+		log.Printf("Invalid ID: %s\n", err)
+		return ErrInvalidEntityId
 	}
 	return nil
 }

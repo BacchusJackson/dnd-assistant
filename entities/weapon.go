@@ -63,7 +63,7 @@ func (w Weapon) PropertiesString() string {
 }
 
 func (w Weapon) Valid() error {
-	err := ValidId(w.Id)
+	err := ValidateEntityId(w.Id)
 
 	if err != nil {
 		log.Println("invalid ID")
