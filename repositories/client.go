@@ -5,7 +5,7 @@ package repositories
 type Client interface {
 	Append(key string, value string) error
 	Update(key string, field string, value string) error
-	Write(key string, value map[string]string) error
+	Write(key string, values map[string]string) error
 	Read(key string) (map[string]string, error)
 	Ping() error
 	Clean() error

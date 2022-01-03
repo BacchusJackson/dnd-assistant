@@ -1,156 +1,75 @@
 package repositories
 
 import (
-	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
-	"os"
 	"testing"
 )
 
-const RedisAddress string = "localhost:6379"
-
-var mockResponse = "error"
-
-// Mocked Repository for testing
-func newMockedRepo() *RedisClient {
-	client := NewDefaultRedisClient(RedisAddress, 2)
-	client.redis = &MockClient{}
-	return client
-}
-
-type MockClient struct{}
-
-func (m MockClient) HSet(ctx context.Context, key string, value ...interface{}) *redis.IntCmd {
-	intCmd := redis.NewIntCmd(ctx, nil)
-	switch key {
-	case "error":
-		intCmd.SetErr(ErrDatabaseFail)
-		return intCmd
-	case "fail":
-		intCmd.SetVal(-1)
-		return intCmd
-	default:
-		intCmd.SetVal(1)
-		return intCmd
-	}
-}
-func (m MockClient) SAdd(ctx context.Context, key string, value ...interface{}) *redis.IntCmd {
-	intCmd := redis.NewIntCmd(ctx, nil)
-	switch key {
-	case "error":
-		intCmd.SetErr(ErrDatabaseFail)
-		return intCmd
-	case "fail":
-		intCmd.SetVal(-1)
-		return intCmd
-	default:
-		intCmd.SetVal(1)
-		return intCmd
-	}
-}
-
-func (m MockClient) HGetAll(ctx context.Context, key string) *redis.StringStringMapCmd {
-	cmd := redis.NewStringStringMapCmd(ctx, nil)
-	switch key {
-	case "error":
-		cmd.SetErr(ErrDatabaseFail)
-		return cmd
-	default:
-		cmd.SetVal(map[string]string{"field-1": "value-1"})
-		return cmd
-	}
-}
-
-func (m MockClient) Ping(ctx context.Context) *redis.StatusCmd {
-	cmd := redis.NewStatusCmd(ctx, nil)
-
-	switch mockResponse {
-	case "error":
-		cmd.SetErr(ErrDatabaseFail)
-		return cmd
-	case "fail":
-		cmd.SetVal("fail")
-		return cmd
-	default:
-		cmd.SetVal("PONG")
-		return cmd
-	}
-}
-
-func (m MockClient) FlushDB(ctx context.Context) *redis.StatusCmd {
-	cmd := redis.NewStatusCmd(ctx, nil)
-	switch mockResponse {
-	case "error":
-		cmd.SetErr(ErrDatabaseFail)
-		return cmd
-	case "fail":
-		cmd.SetVal("fail")
-		return cmd
-	default:
-		cmd.SetVal("OK")
-		return cmd
-	}
-}
-
-// Internal test functions
-func cleanTestDatabase() {
-	client := NewDefaultRedisClient(RedisAddress, 2)
-	err := client.Clean()
-	if err != nil {
-		fmt.Printf("Failed to cleanTestDatabase Redis Database: %s\n", err)
-		os.Exit(-1)
-	}
-}
-
-func checkError(t *testing.T, expected interface{}, got interface{}) {
-	if got != expected {
-		t.Errorf("expected %v ... got %v\n", expected, got)
-	}
-}
-
 // Unit Tests
 func TestRedisRepo_Append(t *testing.T) {
-	cleanTestDatabase()
-	client := newMockedRepo()
+	client := NewMockRedisClient()
 
+	// Redis Command Failure
+	MockIntCmd.SetErr(redis.ErrClosed)
 	err := client.Append("error", "")
 	checkError(t, ErrDatabaseFail, err)
 
-	err = client.Append("fail", "")
+	// Unexpected Return Code
+	MockIntCmd.SetErr(nil)
+	MockIntCmd.SetVal(-1)
+	err = client.Append("key", "value")
 	checkError(t, ErrDatabaseFail, err)
 
+	// Live data test
 	client = NewDefaultRedisClient(RedisAddress, 2)
+	err = client.Clean()
+	checkError(t, nil, err)
 	err = client.Append("test-key", "test-value")
 	checkError(t, nil, err)
 }
 
 func TestRedisRepo_Update(t *testing.T) {
-	cleanTestDatabase()
-	client := newMockedRepo()
+	client := NewMockRedisClient()
+
+	// Redis Command Failure
+	MockIntCmd.SetErr(redis.ErrClosed)
+	MockIntCmd.SetVal(0)
 	err := client.Update("error", "test-field", "test-value")
 	checkError(t, ErrDatabaseFail, err)
 
+	// Unexpected Return Code
+	MockIntCmd.SetErr(nil)
+	MockIntCmd.SetVal(-1)
 	err = client.Update("fail", "test-field", "test-value")
 	checkError(t, ErrDatabaseFail, err)
 
-	client = NewDefaultRedisClient(RedisAddress, 2)
-
+	// Live test
+	client = NewDefaultRedisClient(RedisAddress, RedisTestDB)
+	err = client.Clean()
+	checkError(t, nil, err)
 	err = client.Update("test-key", "test-field", "test-value")
 	checkError(t, nil, err)
 }
 
-func TestRedisRepo_Write(t *testing.T) {
-	cleanTestDatabase()
-	client := newMockedRepo()
+func TestRedisClient_Write(t *testing.T) {
+	client := NewMockRedisClient()
 
+	// Redis Command Failure
+	MockIntCmd.SetErr(redis.ErrClosed)
+	MockIntCmd.SetVal(0)
 	err := client.Write("error", nil)
 	checkError(t, ErrDatabaseFail, err)
 
+	// Unexpected Return Code
+	MockIntCmd.SetErr(nil)
+	MockIntCmd.SetVal(-1)
 	err = client.Write("fail", nil)
 	checkError(t, ErrDatabaseFail, err)
 
-	client = NewDefaultRedisClient(RedisAddress, 2)
+	// Live Data Test
+	client = NewDefaultRedisClient(RedisAddress, RedisTestDB)
+	err = client.Clean()
+	checkError(t, nil, err)
 	err = client.Write("test-key", map[string]string{
 		"field-1": "value-1",
 		"field-2": "value-2",
@@ -158,13 +77,17 @@ func TestRedisRepo_Write(t *testing.T) {
 	checkError(t, nil, err)
 }
 
-func TestRedisRepo_Read(t *testing.T) {
-	cleanTestDatabase()
-	client := newMockedRepo()
+func TestRedisClient_Read(t *testing.T) {
+	client := NewMockRedisClient()
+
+	// Redis Command Failure
+	MockStringStringMapCmd.SetErr(redis.ErrClosed)
+	MockStringStringMapCmd.SetVal(nil)
 	res, err := client.Read("error")
 	checkError(t, ErrDatabaseFail, err)
 
-	client = NewDefaultRedisClient(RedisAddress, 2)
+	// Live Test
+	client = NewDefaultRedisClient(RedisAddress, RedisTestDB)
 	err = client.Update("test-key", "test-field", "test-value")
 	checkError(t, nil, err)
 
@@ -174,32 +97,44 @@ func TestRedisRepo_Read(t *testing.T) {
 
 }
 
-func TestRedisRepo_Ping(t *testing.T) {
-	client := newMockedRepo()
-	mockResponse = "error"
+func TestRedisClient_Ping(t *testing.T) {
+	client := NewMockRedisClient()
+
+	// Redis Command Failure
+	MockStatusCmd.SetErr(redis.ErrClosed)
+	MockStatusCmd.SetVal("")
 	err := client.Ping()
 	checkError(t, ErrDatabaseFail, err)
 
-	mockResponse = "fail"
+	// Unexpected Return
+	MockStatusCmd.SetErr(nil)
+	MockStatusCmd.SetVal("Database Down")
 	err = client.Ping()
 	checkError(t, ErrDatabaseFail, err)
 
-	client = NewDefaultRedisClient(RedisAddress, 2)
+	// Live Test
+	client = NewDefaultRedisClient(RedisAddress, RedisTestDB)
 	err = client.Ping()
 	checkError(t, nil, err)
 }
 
-func TestRedisRepo_Clean(t *testing.T) {
-	client := newMockedRepo()
-	mockResponse = "error"
+func TestRedisClient_Clean(t *testing.T) {
+	client := NewMockRedisClient()
+
+	// Redis Command Failure
+	MockStatusCmd.SetErr(redis.ErrClosed)
+	MockStatusCmd.SetVal("")
 	err := client.Clean()
 	checkError(t, ErrDatabaseFail, err)
 
-	mockResponse = "fail"
+	// Unexpected Return
+	MockStatusCmd.SetErr(nil)
+	MockStatusCmd.SetVal("")
 	err = client.Clean()
 	checkError(t, ErrDatabaseFail, err)
 
-	client = NewDefaultRedisClient(RedisAddress, 2)
+	// Live Test
+	client = NewDefaultRedisClient(RedisAddress, RedisTestDB)
 	err = client.Clean()
 	checkError(t, nil, err)
 }
