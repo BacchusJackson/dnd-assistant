@@ -10,8 +10,8 @@ import (
 )
 
 type Weapon struct {
+	id          string
 	Name        string   `json:"name"`
-	Id          string   `json:"id"`
 	Description string   `json:"description"`
 	Properties  []string `json:"properties,string,omitempty"`
 }
@@ -35,7 +35,7 @@ const (
 
 func NewWeapon(name string, description string, props ...WeaponProperty) *Weapon {
 	w := &Weapon{Name: name, Description: description}
-	w.Id = fmt.Sprintf("weapon.%s", uuid.NewString())
+	w.id = uuid.NewString()
 	for _, prop := range props {
 		w.Properties = append(w.Properties, string(prop))
 	}
@@ -51,6 +51,7 @@ func ParseWeapon(m map[string]string) (*Weapon, error) {
 	jsonBytes, _ := json.Marshal(m)
 	err := json.Unmarshal(jsonBytes, weapon)
 	err = json.Unmarshal(propJsonBytes, &weapon.Properties)
+	weapon.id = m["id"]
 	return weapon, err
 }
 
@@ -62,8 +63,8 @@ func (w Weapon) PropertiesString() string {
 	return strings.Join(w.Properties, ", ")
 }
 
-func (w Weapon) Valid() error {
-	err := ValidateEntityId(w.Id)
+func (w Weapon) Validate() error {
+	err := Validate(w.EntityKey())
 
 	if err != nil {
 		log.Println("invalid ID")
@@ -82,7 +83,12 @@ func (w Weapon) Map() map[string]string {
 	_ = json.Unmarshal(jsonBytes, &output)
 
 	output["properties"] = string(propBytes)
+	output["id"] = w.id
 	return output
+}
+
+func (w Weapon) EntityKey() string {
+	return fmt.Sprintf("weapon.%s", w.id)
 }
 
 func (w Weapon) String() string {

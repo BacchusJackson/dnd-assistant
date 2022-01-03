@@ -9,20 +9,28 @@ import (
 
 type Entity interface {
 	Map() map[string]string
-	EntityId() string
+	EntityKey() string
+	Validate() error
 }
 
-var ErrInvalidEntityId = errors.New("invalid entity id")
+var ErrInvalidEntity = errors.New("invalid entity")
+var ErrInvalidKey = errors.New("invalid entity id")
 
-func ValidateEntityId(id string) error {
-	parts := strings.Split(id, ".")
+func Validate(key string) error {
+	_, _, err := Unpack(key)
+	return err
+}
+
+func Unpack(key string) (id string, eType string, err error) {
+	parts := strings.Split(key, ".")
 	if len(parts) != 2 {
-		return ErrInvalidEntityId
+		return "", "", ErrInvalidKey
 	}
-	_, err := uuid.Parse(parts[1])
+	_, err = uuid.Parse(parts[1])
 	if err != nil {
-		log.Printf("Invalid ID: %s\n", err)
-		return ErrInvalidEntityId
+		log.Printf("Invalid ID ->%s<-: %s\n", id, err)
+		return "", "", ErrInvalidKey
 	}
-	return nil
+
+	return parts[0], parts[1], nil
 }

@@ -5,22 +5,22 @@ import "testing"
 func TestNote_Valid(t *testing.T) {
 	// blank note
 	note := &Note{}
-	err := note.Valid()
+	err := note.Validate()
 	checkError(t, ErrInvalidNote, err)
 
-	note.Id = "invalid.id"
-	err = note.Valid()
+	note.id = "invalid.id"
+	err = note.Validate()
 	checkError(t, ErrInvalidNote, err)
 
 	// invalid time format
 	note = NewNote("content")
 	note.Date = "invalid"
-	err = note.Valid()
+	err = note.Validate()
 	checkError(t, ErrInvalidNote, err)
 
 	// good note
 	note = NewNote("content")
-	err = note.Valid()
+	err = note.Validate()
 	checkError(t, nil, err)
 }
 
@@ -37,7 +37,7 @@ func TestNote_Map(t *testing.T) {
 
 func TestNote_GetId(t *testing.T) {
 	note := NewNote("content")
-	t.Log(note.EntityId())
+	t.Log(note.EntityKey())
 }
 
 func TestParseNote(t *testing.T) {
@@ -45,5 +45,5 @@ func TestParseNote(t *testing.T) {
 	noteMap := note.Map()
 	note2, err := ParseNote(noteMap)
 	checkError(t, nil, err)
-	checkError(t, note.Id, note2.Id)
+	checkError(t, note.id, note2.id)
 }

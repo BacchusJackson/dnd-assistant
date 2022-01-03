@@ -11,7 +11,7 @@ import (
 const TimeFormat = time.RFC822
 
 type Note struct {
-	Id   string `json:"id"`
+	id   string
 	Body string `json:"body"`
 	Date string `json:"date"`
 }
@@ -19,25 +19,25 @@ type Note struct {
 func NewNote(body string) *Note {
 	n := &Note{Body: body}
 	n.Touch()
-	n.Id = uuid.NewString()
+	n.id = uuid.NewString()
 	return n
 }
 
 func ParseNote(m map[string]string) (*Note, error) {
 	n := &Note{
-		Id:   m["id"],
+		id:   m["id"],
 		Body: m["body"],
 		Date: m["date"],
 	}
-	return n, n.Valid()
+	return n, n.Validate()
 }
 
 var ErrInvalidNote = errors.New("invalid note")
 
-// Valid checks if the note has the appropriate fields.
+// Validate checks if the note has the appropriate fields.
 // Returns nil if valid
-func (n Note) Valid() error {
-	err := ValidateEntityId(n.EntityId())
+func (n Note) Validate() error {
+	err := Validate(n.EntityKey())
 
 	if err != nil {
 		log.Println("invalid ID")
@@ -66,12 +66,12 @@ func (n Note) String() string {
 // Map converts a note to a map
 func (n Note) Map() map[string]string {
 	return map[string]string{
-		"id":   n.Id,
+		"id":   n.id,
 		"body": n.Body,
 		"date": n.Date,
 	}
 }
 
-func (n Note) EntityId() string {
-	return fmt.Sprintf("note.%s", n.Id)
+func (n Note) EntityKey() string {
+	return fmt.Sprintf("note.%s", n.id)
 }

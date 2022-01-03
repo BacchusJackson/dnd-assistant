@@ -11,12 +11,12 @@ func TestWeapon_String(t *testing.T) {
 
 func TestWeapon_Valid(t *testing.T) {
 	weapon := NewWeapon("Katana", "1d6 light weapon", Finesse, Light)
-	weapon.Id = "bad.id"
-	err := weapon.Valid()
+	weapon.id = "bad.id"
+	err := weapon.Validate()
 	checkError(t, ErrInvalidWeapon, err)
 
 	weapon = NewWeapon("Katana", "1d6 light weapon", Finesse, Light)
-	err = weapon.Valid()
+	err = weapon.Validate()
 	checkError(t, nil, err)
 }
 
@@ -32,6 +32,6 @@ func TestParseWeapon(t *testing.T) {
 
 	weapon2, err := ParseWeapon(weaponMap)
 	checkError(t, nil, err)
-	checkError(t, weapon.Id, weapon2.Id)
+	checkError(t, weapon.id, weapon2.id)
 	t.Log(weapon2)
 }
